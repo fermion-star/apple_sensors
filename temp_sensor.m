@@ -1,9 +1,35 @@
-//
-//  main.m
-//  sensors
-//
-//  Created by Yang on 11/26/20.
-//
+// This code is originally from https://github.com/freedomtan/sensors/blob/master/sensors/sensors.m
+// Here is the original code's license
+
+// BSD 3-Clause License
+
+// Copyright (c) 2016-2018, "freedom" Koan-Sin Tan
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+
+// * Neither the name of the copyright holder nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <IOKit/hidsystem/IOHIDEventSystemClient.h>
@@ -31,12 +57,12 @@ CFDictionaryRef matching(int page, int usage)
 {
     CFNumberRef nums[2];
     CFStringRef keys[2];
-    
+
     keys[0] = CFStringCreateWithCString(0, "PrimaryUsagePage", 0);
     keys[1] = CFStringCreateWithCString(0, "PrimaryUsage", 0);
     nums[0] = CFNumberCreate(0, kCFNumberSInt32Type, &page);
     nums[1] = CFNumberCreate(0, kCFNumberSInt32Type, &usage);
-    
+
     CFDictionaryRef dict = CFDictionaryCreate(0, (const void**)keys, (const void**)nums, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     return dict;
 }
@@ -46,10 +72,10 @@ CFArrayRef getProductNames(CFDictionaryRef sensors) {
     // ... this is the same as using kCFAllocatorDefault or the return value from CFAllocatorGetDefault()
     IOHIDEventSystemClientSetMatching(system, sensors);
     CFArrayRef matchingsrvs = IOHIDEventSystemClientCopyServices(system); // matchingsrvs = matching services
-    
+
     long count = CFArrayGetCount(matchingsrvs);
     CFMutableArrayRef array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-    
+
     for (int i = 0; i < count; i++) {
         IOHIDServiceClientRef sc = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(matchingsrvs, i);
         CFStringRef name = IOHIDServiceClientCopyProperty(sc, CFSTR("Product")); // here we use ...CopyProperty
@@ -73,13 +99,13 @@ CFArrayRef getPowerValues(CFDictionaryRef sensors) {
     IOHIDEventSystemClientRef system = IOHIDEventSystemClientCreate(kCFAllocatorDefault);
     IOHIDEventSystemClientSetMatching(system, sensors);
     CFArrayRef matchingsrvs = IOHIDEventSystemClientCopyServices(system);
-    
+
     long count = CFArrayGetCount(matchingsrvs);
     CFMutableArrayRef array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
     for (int i = 0; i < count; i++) {
         IOHIDServiceClientRef sc = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(matchingsrvs, i);
         IOHIDEventRef event = IOHIDServiceClientCopyEvent(sc, kIOHIDEventTypePower, 0, 0);
-        
+
         CFNumberRef value;
         if (event != 0) {
             double temp = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypePower));
@@ -97,14 +123,14 @@ CFArrayRef getThermalValues(CFDictionaryRef sensors) {
     IOHIDEventSystemClientRef system = IOHIDEventSystemClientCreate(kCFAllocatorDefault);
     IOHIDEventSystemClientSetMatching(system, sensors);
     CFArrayRef matchingsrvs = IOHIDEventSystemClientCopyServices(system);
-    
+
     long count = CFArrayGetCount(matchingsrvs);
     CFMutableArrayRef array = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
-    
+
     for (int i = 0; i < count; i++) {
         IOHIDServiceClientRef sc = (IOHIDServiceClientRef)CFArrayGetValueAtIndex(matchingsrvs, i);
         IOHIDEventRef event = IOHIDServiceClientCopyEvent(sc, kIOHIDEventTypeTemperature, 0, 0); // here we use ...CopyEvent
-        
+
         CFNumberRef value;
         if (event != 0) {
             double temp = IOHIDEventGetFloatValue(event, IOHIDEventFieldBase(kIOHIDEventTypeTemperature));
@@ -188,30 +214,30 @@ int main () {
     //    kHIDUsage_AppleVendorPowerSensor_Voltage    = 0x0003,
     // See IOHIDFamily/AppleHIDUsageTables.h for more information
     // https://opensource.apple.com/source/IOHIDFamily/IOHIDFamily-701.60.2/IOHIDFamily/AppleHIDUsageTables.h.auto.html
-    
+
     CFDictionaryRef currentSensors = matching(0xff08, 2);
     CFDictionaryRef voltageSensors = matching(0xff08, 3);
     CFDictionaryRef thermalSensors = matching(0xff00, 5); // 65280_10 = FF00_16
     // I change it to 0xff00, due to ioreg -dlx
-    
+
     CFArrayRef currentNames = getProductNames(currentSensors);
     CFArrayRef voltageNames = getProductNames(voltageSensors);
     CFArrayRef thermalNames = getProductNames(thermalSensors);
-    
-    
+
+
 //  printf("freq, v_bat, a_bat, temp_bat");
 //    dumpNames(voltageNames, "V");
 //    dumpNames(currentNames, "A");
     dumpNames(thermalNames, "C");
     printf("\n"); fflush(stdout);
-    
+
     while (1) {
         CFArrayRef currentValues = getPowerValues(currentSensors);
         CFArrayRef voltageValues = getPowerValues(voltageSensors);
         CFArrayRef thermalValues = getThermalValues(thermalSensors);
 //        printf("%lld, ", my_mhz());
 //        mybat();
-        
+
 //        dumpValues(voltageValues);
 //        dumpValues(currentValues);
         dumpValues(thermalValues);
@@ -221,7 +247,7 @@ int main () {
         CFRelease(voltageValues);
         CFRelease(thermalValues);
     }
-    
+
 #if 0
     NSLog(@"%@\n", CFArrayGetValueAtIndex(currentNames, 0));
     NSLog(@"%@\n", CFArrayGetValueAtIndex(currentNames, 1));
@@ -230,9 +256,9 @@ int main () {
     NSLog(@"%@\n", CFArrayGetValueAtIndex(thermalNames, 0));
     NSLog(@"%@\n", CFArrayGetValueAtIndex(thermalNames, 1));
 #endif
-    
+
     // IOHIDEventRef event = IOHIDServiceClientCopyEvent(alssc, 25, 0, 0);
-    
+
     return 0;
 }
 #endif
