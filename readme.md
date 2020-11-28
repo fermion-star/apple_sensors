@@ -25,10 +25,14 @@ https://github.com/exelban/stats/blob/master/Modules/Sensors/values.swift
 
 
 ## screen shot and screen record
+![screen record](https://github.com/fermion-star/apple_sensors/blob/master/screen%20record.mp4?raw=true)
 
+![screen shot](https://github.com/fermion-star/apple_sensors/blob/master/screen%20shot.png?raw=true) 
+<!---
 ![screen record](screen record.mp4)
 
 ![screen shot](screen shot.png) 
+--->
 
 
 
