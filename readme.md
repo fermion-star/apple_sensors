@@ -12,15 +12,19 @@ Only test with my Mac mini with M1. Please check your mac's `ioreg -lfx` output 
 
 ## References
 
-For better name for the sensors, please refer to 
+For better names (e.g. what is `PMU TP3w` ?) for the sensors, please refer to 
 
 https://github.com/exelban/stats/blob/master/Modules/Sensors/values.swift
 
 https://github.com/acidanthera/VirtualSMC/blob/master/Docs/SMCSensorKeys.txt
 
-Similar code for getting sensor values using IOKit (for intel Mac)
+Here is a similar code in swift for getting sensor values using IOKit (for intel Mac)
 
 https://github.com/exelban/stats/blob/master/Modules/Sensors/values.swift
+
+For intel Mac, an easier way to get sensor infomation:
+
+`sudo powermetrics`
 
 
 
