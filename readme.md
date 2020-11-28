@@ -29,9 +29,11 @@ For intel Mac, an easier way to get sensor infomation:
 
 
 ## screen shot and screen record
+- screen record ->screen_record.mp4[1.4MB] 
 ![screen record](https://raw.githubusercontent.com/fermion-star/apple_sensors/master/screen_record.mp4)
 
-![screen shot](https://raw.githubusercontent.com/fermion-star/apple_sensors/master/screen_shot.png)) 
+- screen shot 
+![screen shot](https://raw.githubusercontent.com/fermion-star/apple_sensors/master/screen_shot.png) 
 <!---
 ![screen record](screen_record.mp4)
 
