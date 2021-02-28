@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from curses import wrapper
+import curses
 import sys
 import time
 
@@ -31,6 +31,8 @@ def get_sorted_names():
     # alphabetical order
     sorted_name_i = sorted(name_i, key=lambda x: x[0].lower())
     sorted_names = [name for name, i in sorted_name_i]
+    sorted_names = [name.replace('Sensor','#') for name in sorted_names]
+
     ordered_list = [i for name, i in sorted_name_i]
     # i-th place holds nums[ordered_list[i]]
 
@@ -50,6 +52,8 @@ def get_sorted_nums(ordered_list):
     return sorted_nums
 
 def main(stdscr):
+    curses.start_color()
+    curses.use_default_colors()
     # 57 items, max name len = 25
     # sorted_names = ['ANE MTR Temp Sensor1', 'GPU MTR Temp Sensor1', 'GPU MTR Temp Sensor4', 'ISP MTR Temp Sensor5', 'NAND CH0 temp', 'PMGR SOC Die Temp Sensor0', 'PMGR SOC Die Temp Sensor1', 'PMGR SOC Die Temp Sensor2', 'PMU TP3w', 'PMU tcal', 'PMU tdev1', 'PMU tdev2', 'PMU tdev3', 'PMU tdev4', 'PMU tdev5', 'PMU tdev6', 'PMU tdev7', 'PMU tdev8', 'PMU tdie1', 'PMU tdie2', 'PMU tdie4', 'PMU tdie5', 'PMU tdie6', 'PMU tdie7', 'PMU tdie8', 'PMU2 TR0Z', 'PMU2 TR1d', 'PMU2 TR1l', 'PMU2 TR2d', 'PMU2 TR2l', 'PMU2 TR3b', 'PMU2 TR3d', 'PMU2 TR4b', 'PMU2 TR4d', 'PMU2 TR5b', 'PMU2 TR5d', 'PMU2 TR6b', 'PMU2 TR7b', 'PMU2 TR8b', 'SOC MTR Temp Sensor0', 'SOC MTR Temp Sensor1', 'SOC MTR Temp Sensor2', 'eACC MTR Temp Sensor0', 'eACC MTR Temp Sensor3', 'gas gauge battery', 'gas gauge battery', 'gas gauge battery', 'gas gauge battery', 'gas gauge battery', 'gas gauge battery', 'pACC MTR Temp Sensor2', 'pACC MTR Temp Sensor3', 'pACC MTR Temp Sensor4', 'pACC MTR Temp Sensor5', 'pACC MTR Temp Sensor7', 'pACC MTR Temp Sensor8', 'pACC MTR Temp Sensor9'];
 
@@ -63,6 +67,8 @@ def main(stdscr):
 
     sys_info = f'{get_processor_name()}, {get_OS_ver()}' # Processor: , OS:
 
+    max_nums = None
+
     while True:
         # Clear screen
         stdscr.clear()
@@ -71,7 +77,7 @@ def main(stdscr):
         # the top-left corner of a window is coordinate (0,0).
         # assert nx>=80 and ny>=32
         if not (nx>=80 and ny>=32):
-            stdscr.addnstr(0,0, 'enlarge the size of this terminal...', 50)
+            stdscr.addnstr(0,0, 'enlarge the size of this terminal...', 50, curses.A_REVERSE)
             stdscr.addnstr(1,0, f'requires min 32x80, now {ny}x{nx} (row x col)', 50)
             stdscr.refresh()
             time.sleep(0.2)
@@ -86,21 +92,31 @@ def main(stdscr):
         #      xmid+3
 
         sorted_nums = get_sorted_nums(ordered_list)
-        for y in range(0, nrow1):
+        if max_nums is not None:
+            max_nums = [max(x,y) for x,y in zip(sorted_nums, max_nums)]
+        else:
+            max_nums = sorted_nums
+
+        for y in range(-1, nrow1):
             stdscr.addnstr(nrow0+y,xmid, '|', 1)
+
+        curses.init_pair(1, 14, -1)
+        titles = ['Sensor Name','now /max˚C']
+        stdscr.addnstr(nrow0-1,     0, f'{titles[0]:{max_name_length+3}}   {titles[1]}', 37, curses.color_pair(1))
+        stdscr.addnstr(nrow0-1,xmid+3, f'{titles[0]:{max_name_length+3}}   {titles[1]}', 37, curses.color_pair(1))
 
         i = 0;
         for y in range(0, nrow1):
             if i<n:
-                stdscr.addnstr(nrow0+y,     0, f'{sorted_names[i]:{max_name_length+3}}   {sorted_nums[i]:5.1f}', 37)
+                stdscr.addnstr(nrow0+y,     0, f'{sorted_names[i]:{max_name_length+2}}  {sorted_nums[i]:5.1f} /{max_nums[i]:5.1f}', 37)
                 i += 1
         for y in range(0, nrow1):
             if i<n:
-                stdscr.addnstr(nrow0+y,xmid+3, f'{sorted_names[i]:{max_name_length+3}}   {sorted_nums[i]:5.1f}', 37)
+                stdscr.addnstr(nrow0+y,xmid+3, f'{sorted_names[i]:{max_name_length+2}}  {sorted_nums[i]:5.1f} /{max_nums[i]:5.1f}', 37)
                 i += 1
 
         stdscr.refresh()
         # stdscr.getkey()
-        time.sleep(0.9)
+        time.sleep(0.4)
 
-wrapper(main)
+curses.wrapper(main)

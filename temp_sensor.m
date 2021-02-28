@@ -244,7 +244,7 @@ int main () {
 //        dumpValues(currentValues);
         dumpValues(thermalValues);
         printf("\n"); fflush(stdout);
-        usleep(1000000); // usleep - suspend execution for microsecond intervals
+        usleep(500000); // usleep - suspend execution for microsecond intervals
         CFRelease(currentValues);
         CFRelease(voltageValues);
         CFRelease(thermalValues);
