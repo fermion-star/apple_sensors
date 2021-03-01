@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import curses
-import sys
+import sys, os
 import time
 
 import platform
@@ -75,16 +75,17 @@ def main(stdscr):
         ny,nx = stdscr.getmaxyx()
         # Coordinates are always passed in the order y,x
         # the top-left corner of a window is coordinate (0,0).
-        # assert nx>=80 and ny>=32
-        if not (nx>=80 and ny>=32):
+        # assert nx>=80 and ny>=34
+        if not (nx>=80 and ny>=34):
             stdscr.addnstr(0,0, 'enlarge the size of this terminal...', 50, curses.A_REVERSE)
             stdscr.addnstr(1,0, f'requires min 32x80, now {ny}x{nx} (row x col)', 50)
             stdscr.refresh()
             time.sleep(0.2)
             continue
 
-        stdscr.addnstr(0,0, f'{sys_info}, {n} sensors (max_name_length={max_name_length})', 80)
-
+        stdscr.box()
+        stdscr.addnstr(0,5, f' {sys_info}, {n} sensors ', 80) # (max_name_length={max_name_length})
+        stdscr.addnstr(ny-1,5, f' Press Ctrl+C to exit ', 80)
 
         xmid = nx//2 # //ncol
         # __|__
@@ -97,18 +98,19 @@ def main(stdscr):
         else:
             max_nums = sorted_nums
 
-        for y in range(-1, nrow1):
-            stdscr.addnstr(nrow0+y,xmid, '|', 1)
+        # for y in range(-1, nrow1):
+        #     stdscr.addnstr(nrow0+y,xmid, '|', 1)
+        stdscr.vline(nrow0-1, xmid, curses.ACS_VLINE, nrow1+1)
 
         curses.init_pair(1, 14, -1)
         titles = ['Sensor Name','now /max˚C']
-        stdscr.addnstr(nrow0-1,     0, f'{titles[0]:{max_name_length+3}}   {titles[1]}', 37, curses.color_pair(1))
+        stdscr.addnstr(nrow0-1,     2, f'{titles[0]:{max_name_length+3}}   {titles[1]}', 37, curses.color_pair(1))
         stdscr.addnstr(nrow0-1,xmid+3, f'{titles[0]:{max_name_length+3}}   {titles[1]}', 37, curses.color_pair(1))
 
         i = 0;
         for y in range(0, nrow1):
             if i<n:
-                stdscr.addnstr(nrow0+y,     0, f'{sorted_names[i]:{max_name_length+2}}  {sorted_nums[i]:5.1f} /{max_nums[i]:5.1f}', 37)
+                stdscr.addnstr(nrow0+y,     2, f'{sorted_names[i]:{max_name_length+2}}  {sorted_nums[i]:5.1f} /{max_nums[i]:5.1f}', 37)
                 i += 1
         for y in range(0, nrow1):
             if i<n:
@@ -119,4 +121,12 @@ def main(stdscr):
         # stdscr.getkey()
         time.sleep(0.4)
 
-curses.wrapper(main)
+# https://stackoverflow.com/questions/21120947/catching-keyboardinterrupt-in-python-during-program-shutdown/21144662
+try:
+    curses.wrapper(main)
+except KeyboardInterrupt:
+    # print('Finish Monitoring Temperature!')
+    try:
+        sys.exit(0)
+    except SystemExit:
+        os._exit(0)
